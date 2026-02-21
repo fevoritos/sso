@@ -36,13 +36,14 @@ type UserProvider interface {
 }
 
 type AppProvider interface {
-	App(ctx context.Context, appId int) (models.App, error)
+	App(ctx context.Context, appId int32) (models.App, error)
 }
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidAppId       = errors.New("invalid app id")
 	ErrUserExists         = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 // New returns a new instance od thr Auth service
@@ -66,7 +67,7 @@ func (a *Auth) Login(
 	ctx context.Context,
 	email string,
 	password string,
-	appId int,
+	appId int32,
 ) (string, error) {
 	const op = "auth.Login"
 
@@ -136,6 +137,11 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 
 	id, err := a.userSaver.SaveUser(ctx, email, passHsh)
 	if err != nil {
+		if errors.Is(err, storage.ErrUserExists) {
+			log.Warn("user already exists", sl.Err(err))
+
+			return 0, fmt.Errorf("%s: %w", op, ErrUserExists)
+		}
 		log.Error("failed to save user", sl.Err(err))
 
 		return 0, fmt.Errorf("%s: %w", op, err)
