@@ -9,3 +9,15 @@ tasks:
     desc: "migrate database"
     cmds:
       - go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./migrations
+  test-migrate:
+    aliases:
+      - test
+    desc: "migrate app secreta for test"
+    cmds:
+      - go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./tests/migrations
+  local:
+    aliases:
+      - loc
+    desc: run app with local.yaml
+    cmds:
+      - go run cmd/sso/main.go --config=./config/local.yaml
